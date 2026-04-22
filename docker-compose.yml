@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
 
@@ -8,18 +8,34 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /var/lib/jenkins/data:/app/app/data
+      - /var/lib/jenkins/data:/app/app/data   # matches your app path
+    networks:
+      - monitoring
+    restart: always
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.37.0
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - monitoring
+    depends_on:
+      - fastapi-app
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:9.0.0
     container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring:
